@@ -53,5 +53,55 @@
     }
   }
 
+  async function likePosts() {
+    const likeButtons = $("button:contains('Like')");
+    for (let i = 0; i < likeButtons.length; i++) {
+      const likeButton = likeButtons[i];
+      $(likeButton).click();
+      await delay(1000 + Math.random() * 1000); // Random delay
+    }
+  }
+
+  async function generateAndPostComments() {
+    const postDescriptions = $(".feed-shared-update-v2__description");
+    for (let i = 0; i < postDescriptions.length; i++) {
+      const postDescription = postDescriptions[i];
+      const descriptionText = $(postDescription).text();
+      const generatedComment = await getGeneratedComment(descriptionText);
+      const commentButton = $(postDescription).closest(".feed-shared-update-v2").find("button:contains('Comment')");
+      if (commentButton.length) {
+        $(commentButton).click();
+        await delay(1000 + Math.random() * 1000); // Random delay
+        const commentBox = $(postDescription).closest(".feed-shared-update-v2").find("textarea");
+        if (commentBox.length) {
+          $(commentBox).val(generatedComment);
+          const postCommentButton = $(postDescription).closest(".feed-shared-update-v2").find("button:contains('Post')");
+          if (postCommentButton.length) {
+            $(postCommentButton).click();
+            await delay(1000 + Math.random() * 1000); // Random delay
+          }
+        }
+      }
+    }
+  }
+
+  async function getGeneratedComment(descriptionText) {
+    const response = await fetch('https://api.openai.com/v1/engines/davinci-codex/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer YOUR_OPENAI_API_KEY`
+      },
+      body: JSON.stringify({
+        prompt: `Generate a comment for the following LinkedIn post description: ${descriptionText}`,
+        max_tokens: 50
+      })
+    });
+    const data = await response.json();
+    return data.choices[0].text.trim();
+  }
+
   await connectWithProfiles();
+  await likePosts();
+  await generateAndPostComments();
 })();
