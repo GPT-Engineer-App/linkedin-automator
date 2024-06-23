@@ -12,10 +12,30 @@
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  function getVisitedProfiles() {
+    const visited = localStorage.getItem('visitedProfiles');
+    return visited ? JSON.parse(visited) : [];
+  }
+
+  function addVisitedProfile(profileUrl) {
+    const visited = getVisitedProfiles();
+    visited.push(profileUrl);
+    localStorage.setItem('visitedProfiles', JSON.stringify(visited));
+  }
+
   async function connectWithProfiles() {
     const profiles = $(".search-result__info a");
+    const visitedProfiles = getVisitedProfiles();
+
     for (let i = 0; i < profiles.length; i++) {
       const profile = profiles[i];
+      const profileUrl = $(profile).attr('href');
+
+      if (visitedProfiles.includes(profileUrl)) {
+        console.log(`Skipping already visited profile: ${profileUrl}`);
+        continue;
+      }
+
       $(profile).click();
       await delay(2000 + Math.random() * 2000); // Wait for profile to load with random delay
       const connectButton = $("button:contains('Connect')");
@@ -27,6 +47,7 @@
           sendButton.click();
         }
       }
+      addVisitedProfile(profileUrl);
       window.history.back();
       await delay(2000 + Math.random() * 2000); // Wait for navigation with random delay
     }
